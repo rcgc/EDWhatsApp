@@ -5,3 +5,4 @@
 
 # References
 * https://ed.team/cursos/go-concurrency
+* https://github.com/edteamlat/EDWhatsApp
