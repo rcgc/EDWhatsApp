@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	// Maximum message size allowed.
+	// Maximum message size allowed
 	maxMessageSize = 512
 
 	// Time allowed to write a message.
@@ -24,25 +24,25 @@ const (
 	pongWait = pingPeriod + (10 * time.Second)
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
+var upgrader = websocket.Upgrader {
+	ReadBufferSize: 1024,
 	WriteBufferSize: 1024,
 }
 
 type Message struct {
-	Nickname string `json:"nickname,omitempty"`
-	Content  string `json:"content,omitempty"`
+	Nickname	string `json:"nickname,omitempty"`
+	Content		string `json:"content,omitempty"`
 }
 
 type Client struct {
-	nickname     string
-	hub          *Hub
-	conn         *websocket.Conn
+	nickname	 string
+	hub			 *Hub
+	conn		 *websocket.Conn
 	queueMessage chan Message
 }
 
-func (c *Client) readWS() {
-	defer func() {
+func(c *Client) readWS() {
+	defer func(){
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
@@ -50,7 +50,7 @@ func (c *Client) readWS() {
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 
-	c.conn.SetPongHandler(func(ping string) error {
+	c.conn.SetPongHandler(func(ping string) error { // Firefox allow to see ping-pong frames
 		fmt.Println("Pong:", c.nickname, ping)
 
 		c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -61,7 +61,7 @@ func (c *Client) readWS() {
 		message := Message{}
 		if err := c.conn.ReadJSON(&message); err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Println("can't read the message: ", err)
+				log.Println("cannot read the message: ", err)
 			}
 			return
 		}
@@ -70,10 +70,10 @@ func (c *Client) readWS() {
 	}
 }
 
-func (c *Client) writeWS() {
+func(c *Client) writeWS() {
 	ticker := time.NewTicker(pingPeriod)
 
-	defer func() {
+	defer func(){
 		ticker.Stop()
 		c.conn.Close()
 	}()
@@ -88,13 +88,13 @@ func (c *Client) writeWS() {
 
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteJSON(message); err != nil {
-				log.Println("can't write the message into ws: ", err)
+				log.Println("cannot write the message into ws: ", err)
 				return
 			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, []byte("Ping")); err != nil {
-				log.Printf("it can't write the Ping message: %v", err)
+				log.Printf("cannot write the Ping message: %v: ", err)
 				return
 			}
 		}
@@ -116,9 +116,9 @@ func handleWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		nickname:     nickname[0],
-		hub:          hub,
-		conn:         conn,
+		nickname: nickname[0],
+		hub: hub,
+		conn: conn,
 		queueMessage: make(chan Message, 2),
 	}
 
